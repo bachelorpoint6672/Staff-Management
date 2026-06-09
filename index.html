@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Management System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        html {
+            scroll-behavior: smooth;
+            scroll-padding-top: 70px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: #f4f6f9;
+            color: #333;
+        }
+
+        /* হেডার ডিজাইন */
+        header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        header h1 {
+            font-size: 2.3rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+
+        header p {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        /* নেভিগেশন বার */
+        nav {
+            background-color: #111;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        nav a {
+            color: #ddd;
+            text-decoration: none;
+            padding: 15px 25px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        nav a:hover {
+            color: white;
+            background-color: #2a5298;
+        }
+
+        /* মেইন কন্টেইনার */
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        /* ড্যাশবোর্ড কার্ড (ডিফল্টভাবে লুকানো - এডমিনদের জন্য) */
+        .stats-grid {
+            display: none; /* এডমিন লগইনে ডাইনামিক ওপেন হবে */
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s;
+            border-bottom: 4px solid #2a5298;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stat-card i {
+            font-size: 2rem;
+            color: #2a5298;
+            margin-bottom: 10px;
+        }
+
+        .stat-card h2 {
+            font-size: 2.2rem;
+            color: #111;
+            margin-bottom: 5px;
+        }
+
+        .stat-card p {
+            color: #777;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        /* সার্চ ও ফিল্টার সেকশন */
+        .search-filter-section {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            flex: 2;
+            min-width: 250px;
+            padding: 15px 20px;
+            font-size: 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .search-box:focus { border-color: #2a5298; }
+
+        .filter-dropdown {
+            flex: 1;
+            min-width: 180px;
+            padding: 15px;
+            font-size: 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            outline: none;
+            background-color: white;
+            cursor: pointer;
+        }
+
+        /* ক্যাটাগরি বাটন/ফোল্ডার সিস্টেম (Management vs Staff) */
+        .category-tabs {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 18px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s;
+            background: #eef2f7;
+            color: #555;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(42, 82, 152, 0.3);
+        }
+
+        /* সেকশন টাইটেল */
+        .title-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            color: #1e3c72;
+            font-weight: 600;
+            border-left: 5px solid #2a5298;
+            padding-left: 12px;
+        }
+
+        .edit-title-btn {
+            background: none;
+            border: none;
+            color: #f39c12;
+            cursor: pointer;
+            font-size: 1.1rem;
+            display: none; /* এডমিন লগইনে দেখাবে */
+        }
+
+        /* স্টাফ গ্রিড */
+        .staff-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 60px;
+        }
+
+        .staff-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            text-align: center;
+            padding: 30px 20px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .staff-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .staff-img {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 0 auto 15px;
+            border: 3px solid #2a5298;
+            padding: 3px;
+            background: #f4f6f9;
+        }
+
+        .staff-card h2 {
+            font-size: 1.3rem;
+            color: #222;
+            margin-bottom: 5px;
+        }
+
+        .staff-tags {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tag-designation {
+            font-size: 0.8rem;
+            color: #2a5298;
+            font-weight: 600;
+            background: #eef2f7;
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
+
+        .tag-dept {
+            font-size: 0.8rem;
+            color: #2ecc71;
+            font-weight: 600;
+            background: #eafaf1;
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
+
+        .staff-info {
+            font-size: 0.9rem;
+            color: #555;
+            margin-top: 10px;
+            text-align: left;
+            padding-left: 15px;
+        }
+
+        .staff-info i {
+            color: #2a5298;
+            margin-right: 10px;
+            width: 16px;
+        }
+
+        /* এডমিন বাটন গ্রুপ */
+        .admin-action-btn-group {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            display: none;
+            gap: 8px;
+            z-index: 5;
+        }
+
+        .action-icon-btn {
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+        }
+
+        .edit-card-btn { background: #f39c12; }
+        .edit-card-btn:hover { background: #d35400; }
+        .delete-card-btn { background: #e74c3c; }
+        .delete-card-btn:hover { background: #c0392b; }
+
+        .replace-photo-lbl {
+            position: absolute;
+            top: 95px;
+            left: 53%;
+            transform: translateX(-50%);
+            background: #2a5298;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.8rem;
+            border: 2px solid white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: 0.2s;
+        }
+
+        .replace-photo-lbl:hover { background: #1e3c72; transform: translateX(-50%) scale(1.1); }
+
+        /* ফর্ম কন্টেইনার */
+        .form-container {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            max-width: 750px;
+            margin: 0 auto 60px;
+            display: none;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .form-grid { grid-template-columns: 1fr; }
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #444;
+        }
+
+        .form-group input, .form-group select {
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus, .form-group select:focus { border-color: #2a5298; }
+
+        .form-full-width { grid-column: span 2; }
+        @media (max-width: 600px) { .form-full-width { grid-column: span 1; } }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            border: none;
+            padding: 15px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 15px;
+            box-shadow: 0 4px 10px rgba(42, 82, 152, 0.3);
+        }
+
+        .submit-btn:hover { opacity: 0.95; }
+
+        /* মোডাল স্টাইল */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.2);
+        }
+
+        .modal-header {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #1e3c72;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-close { cursor: pointer; font-size: 1.5rem; color: #888; }
+
+        /* এডমিন কন্ট্রোল বার */
+        .admin-control-bar {
+            text-align: center;
+            margin-top: 20px;
+            padding: 15px;
+            background: #eef2f7;
+            border-radius: 8px;
+        }
+
+        .admin-btn {
+            background: #1e3c72;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .admin-btn:hover { background: #2a5298; }
+
+        /* ফুটার */
+        footer {
+            background-color: #111;
+            color: #888;
+            text-align: center;
+            padding: 25px;
+            font-size: 0.9rem;
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Staff Management System</h1>
+        <p>Employee Information Portal</p>
+    </header>
+
+    <nav>
+        <a href="#dashboard-section" id="nav-dashboard" style="display:none;"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+        <a href="#staff-list-section"><i class="fa-solid fa-users"></i> Staff List</a>
+        <a href="#form-container-box" id="nav-add-staff" style="display:none;"><i class="fa-solid fa-user-plus"></i> Add Staff</a>
+        <a href="#contact-section"><i class="fa-solid fa-envelope"></i> Contact</a>
+    </nav>
+
+    <div class="container">
+        
+        <div id="dashboard-section" style="scroll-margin-top: 20px;"></div>
+        <div class="stats-grid" id="stats-grid-container">
+            <div class="stat-card">
+                <i class="fa-solid fa-user-tie"></i>
+                <h2 id="total-staff-count">0</h2>
+                <p>Total Staff</p>
+            </div>
+            <div class="stat-card">
+                <i class="fa-solid fa-sitemap"></i>
+                <h2 id="total-dept-count">0</h2>
+                <p>Departments</p>
+            </div>
+            <div class="stat-card">
+                <i class="fa-solid fa-user-clock"></i>
+                <h2>3</h2>
+                <p>New This Month</p>
+            </div>
+            <div class="stat-card" style="border-bottom-color: #2ecc71;">
+                <i class="fa-solid fa-circle-check" style="color: #2ecc71;"></i>
+                <h2>100%</h2>
+                <p>System Online</p>
+            </div>
+        </div>
+
+        <div class="search-filter-section">
+            <input type="text" id="search-box" class="search-box" placeholder="🔍 Search Staff by Name...">
+            <select id="role-filter" class="filter-dropdown">
+                <option value="All">All Designations</option>
+                <option value="Management">Management</option>
+                <option value="Officer">Officer</option>
+                <option value="Executive">Executive</option>
+                <option value="Sales">Sales</option>
+                <option value="Peon">Peon</option>
+                <option value="Driver">Driver</option>
+                <option value="Chef">Chef</option>
+            </select>
+        </div>
+
+        <div class="category-tabs">
+            <button class="tab-btn active" id="tab-staff" onclick="switchCategory('Staff')">
+                <i class="fa-solid fa-folder-open"></i> Staff List
+            </button>
+            <button class="tab-btn" id="tab-management" onclick="switchCategory('Management')">
+                <i class="fa-solid fa-folder"></i> Management Panel
+            </button>
+        </div>
+
+        <div class="title-wrapper" id="staff-list-section">
+            <h2 class="section-title" id="main-section-title-text">Active Staff Members</h2>
+            <button class="edit-title-btn" id="edit-title-main-btn" onclick="editMainTitle()" title="Edit Title"><i class="fa-solid fa-pen"></i></button>
+        </div>
+        
+        <div class="staff-grid" id="staff-grid-container">
+            </div>
+
+        <div class="form-container" id="form-container-box">
+            <h2 class="section-title" style="margin-bottom: 25px;">Add New Staff (Admin Only)</h2>
+            <form class="form-grid" id="add-staff-form">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="form-name" placeholder="Enter Full Name" required>
+                </div>
+                <div class="form-group">
+                    <label>Designation Group</label>
+                    <select id="form-designation" required>
+                        <option value="">Select Category</option>
+                        <option value="Management">Management</option>
+                        <option value="Officer">Officer</option>
+                        <option value="Executive">Executive</option>
+                        <option value="Sales">Sales</option>
+                        <option value="Peon">Peon</option>
+                        <option value="Driver">Driver</option>
+                        <option value="Chef">Chef</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Department</label>
+                    <select id="form-dept-select">
+                        </select>
+                </div>
+                <div class="form-group">
+                    <label>+ Create New Department (Optional)</label>
+                    <input type="text" id="form-new-dept-input" placeholder="Or Type New Dept Name">
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="form-email" placeholder="example@mail.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="tel" id="form-phone" placeholder="017XXXXXXXX" required>
+                </div>
+                <div class="form-group form-full-width">
+                    <label>Staff Photo</label>
+                    <input type="file" id="form-photo" accept="image/*">
+                </div>
+                <button type="submit" class="submit-btn form-full-width">Add New Staff Member</button>
+            </form>
+        </div>
+
+        <div class="admin-control-bar">
+            <span id="admin-status-text" style="margin-right: 15px; font-weight: 500; color: #666;">Mode: Public View</span>
+            <button id="admin-action-btn" class="admin-btn" onclick="toggleAdminMode()">Admin Login</button>
+        </div>
+
+    </div>
+
+    <div class="modal" id="edit-staff-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>✎ Edit Staff Details</span>
+                <span class="modal-close" onclick="closeEditModal()">&times;</span>
+            </div>
+            <form id="edit-staff-form" style="display: flex; flex-direction: column; gap: 15px;">
+                <input type="hidden" id="edit-staff-id">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="edit-name" required>
+                </div>
+                <div class="form-group">
+                    <label>Designation Group</label>
+                    <select id="edit-designation" required>
+                        <option value="Management">Management</option>
+                        <option value="Officer">Officer</option>
+                        <option value="Executive">Executive</option>
+                        <option value="Sales">Sales</option>
+                        <option value="Peon">Peon</option>
+                        <option value="Driver">Driver</option>
+                        <option value="Chef">Chef</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Department</label>
+                    <select id="edit-dept-select" required>
+                        </select>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="edit-email" required>
+                </div>
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="tel" id="edit-phone" required>
+                </div>
+                <button type="submit" class="submit-btn">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <input type="file" id="replace-photo-file-input" accept="image/*" style="display: none;">
+
+    <div id="contact-section" style="background: #eef2f7; padding: 30px; text-align: center; margin-top: 40px; border-radius: 12px;">
+        <h3 style="color: #1e3c72; margin-bottom: 10px;"><i class="fa-solid fa-envelope"></i> Contact Support</h3>
+        <p style="color: #555; font-weight: 500;">যেকোনো টেকনিক্যাল সমস্যায় যোগাযোগ করুন: <a href="mailto:md.mahamudulla.tsi@gmail.com" style="color: #2a5298; text-decoration: none;">md.mahamudulla.tsi@gmail.com</a></p>
+        <p style="color: #555; font-weight: 500; margin-top: 5px;"><i class="fa-solid fa-phone"></i> হেল্পলাইন: 01322-401118</p>
+    </div>
+
+    <footer>
+        &copy; 2026 Staff Management System | All Rights Reserved
+    </footer>
+
+    <script>
+        const ADMIN_PASSWORD = "52266405"; 
+        let isAdminLoggedIn = false;
+        let activeStaffIdForPhotoReplace = null;
+        let currentCategoryTab = 'Staff'; // Default view: Staff
+
+        // প্রাথমিক ডেমো ডেটা
+        const defaultStaff = [
+            { id: 1, name: "Md. Mahamudulla", designation: "Management", dept: "IT & Admin", phone: "01322-401118", email: "md.mahamudulla.tsi@gmail.com", img: "https://robohash.org/mahamudulla.png?set=set4" },
+            { id: 2, name: "Abdul Karim", designation: "Officer", dept: "Accounts", phone: "018XXXXXXXX", email: "accountant@example.com", img: "https://robohash.org/karim.png?set=set4" },
+            { id: 3, name: "Rahim Uddin", designation: "Management", dept: "HR", phone: "019XXXXXXXX", email: "manager@example.com", img: "https://robohash.org/rahim.png?set=set4" },
+            { id: 4, name: "Jannatul Ferdous", designation: "Executive", dept: "Sales", phone: "016XXXXXXXX", email: "sales@example.com", img: "https://robohash.org/jannat.png?set=set4" }
+        ];
+
+        const defaultDepts = ["IT & Admin", "Accounts", "HR", "Sales", "Production"];
+
+        let staffList = JSON.parse(localStorage.getItem('staffData2')) || defaultStaff;
+        let deptList = JSON.parse(localStorage.getItem('deptData2')) || defaultDepts;
+        let customMainTitle = localStorage.getItem('customMainTitle2') || "Active Staff Members";
+
+        const staffGrid = document.getElementById('staff-grid-container');
+        const staffForm = document.getElementById('add-staff-form');
+        const searchBox = document.getElementById('search-box');
+        const roleFilter = document.getElementById('role-filter');
+        const totalStaffCounter = document.getElementById('total-staff-count');
+        const totalDeptCounter = document.getElementById('total-dept-count');
+        const formContainer = document.getElementById('form-container-box');
+        const navAddStaff = document.getElementById('nav-add-staff');
+        const navDashboard = document.getElementById('nav-dashboard');
+        const statsGrid = document.getElementById('stats-grid-container');
+        const adminStatusText = document.getElementById('admin-status-text');
+        const adminActionBtn = document.getElementById('admin-action-btn');
+        const replaceFileInput = document.getElementById('replace-photo-file-input');
+        const editModal = document.getElementById('edit-staff-modal');
+        const editForm = document.getElementById('edit-staff-form');
+        const mainTitleElement = document.getElementById('main-section-title-text');
+        const editTitleBtn = document.getElementById('edit-title-main-btn');
+
+        // ডিপার্টমেন্ট ড্রপডাউন লোড করা
+        function updateDeptDropdowns() {
+            const formDeptSelect = document.getElementById('form-dept-select');
+            const editDeptSelect = document.getElementById('edit-dept-select');
+            
+            let optionsHtml = '<option value="">Select Existing Department</option>';
+            deptList.forEach(dept => {
+                optionsHtml += `<option value="${dept}">${dept}</option>`;
+            });
+            
+            formDeptSelect.innerHTML = optionsHtml;
+            editDeptSelect.innerHTML = optionsHtml;
+        }
+
+        // ক্যাটাগরি ফোল্ডার সুইচ (Management vs Staff)
+        function switchCategory(category) {
+            currentCategoryTab = category;
+            document.getElementById('tab-staff').classList.remove('active');
+            document.getElementById('tab-management').classList.remove('active');
+            
+            if(category === 'Management') {
+                document.getElementById('tab-management').classList.add('active');
+                document.getElementById('tab-management').querySelector('i').className = "fa-solid fa-folder-open";
+                document.getElementById('tab-staff').querySelector('i').className = "fa-solid fa-folder";
+            } else {
+                document.getElementById('tab-staff').classList.add('active');
+                document.getElementById('tab-staff').querySelector('i').className = "fa-solid fa-folder-open";
+                document.getElementById('tab-management').querySelector('i').className = "fa-solid fa-folder";
+            }
+            applyFilters();
+        }
+
+        // ডাটা রেন্ডার করা
+        function renderStaff(displayList = staffList) {
+            staffGrid.innerHTML = '';
+            mainTitleElement.innerText = customMainTitle;
+
+            if(displayList.length === 0) {
+                staffGrid.innerHTML = `<p style="grid-column: 1/-1; text-align:center; color:#888; padding: 20px;">No members found in this group!</p>`;
+            }
+
+            displayList.forEach(staff => {
+                const card = document.createElement('div');
+                card.classList.add('staff-card');
+                const adminStyles = isAdminLoggedIn ? 'display: flex;' : 'display: none;';
+
+                card.innerHTML = `
+                    <div class="admin-action-btn-group" style="${adminStyles}">
+                        <button class="action-icon-btn edit-card-btn" onclick="openEditModal(${staff.id})" title="Edit Info"><i class="fa-solid fa-pen"></i></button>
+                        <button class="action-icon-btn delete-card-btn" onclick="deleteStaff(${staff.id})" title="Delete"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                    <img src="${staff.img}" alt="${staff.name}" class="staff-img">
+                    <label class="replace-photo-lbl" style="${adminStyles}" onclick="triggerPhotoReplace(${staff.id})">
+                        <i class="fa-solid fa-camera"></i>
+                    </label>
+                    <h2>${staff.name}</h2>
+                    <div class="staff-tags">
+                        <span class="tag-designation">${staff.designation}</span>
+                        <span class="tag-dept"><i class="fa-solid fa-sitemap"></i> ${staff.dept || 'N/A'}</span>
+                    </div>
+                    <div class="staff-info"><i class="fa-solid fa-phone"></i> ${staff.phone}</div>
+                    <div class="staff-info"><i class="fa-solid fa-envelope"></i> ${staff.email}</div>
+                `;
+                staffGrid.appendChild(card);
+            });
+
+            totalStaffCounter.innerText = staffList.length;
+            totalDeptCounter.innerText = deptList.length;
+        }
+
+        // লাইভ সার্চ এবং ক্যাটাগরি ফিল্টারিং সিস্টেম
+        function applyFilters() {
+            const searchTerm = searchBox.value.toLowerCase();
+            const selectedDesignation = roleFilter.value;
+
+            let filtered = staffList.filter(staff => {
+                // ১. ফোল্ডার/ট্যাব ফিল্টার (Management বনাম বাকিরা)
+                if (currentCategoryTab === 'Management') {
+                    if (staff.designation !== 'Management') return false;
+                } else {
+                    if (staff.designation === 'Management') return false;
+                }
+
+                // ২. ডেডিকেটেড ডিজাইন ফিল্টার ড্রপডাউন
+                if (selectedDesignation !== 'All' && staff.designation !== selectedDesignation) return false;
+
+                // ৩. লাইভ সার্চ ফিল্টার
+                if (searchTerm && !staff.name.toLowerCase().includes(searchTerm)) return false;
+
+                return true;
+            });
+
+            renderStaff(filtered);
+        }
+
+        searchBox.addEventListener('input', applyFilters);
+        roleFilter.addEventListener('change', applyFilters);
+
+        // শিরোনাম পরিবর্তন (Admin Only)
+        function editMainTitle() {
+            if(!isAdminLoggedIn) return;
+            const newTitle = prompt("নতুন শিরোনামটি লিখুন:", customMainTitle);
+            if(newTitle !== null && newTitle.trim() !== "") {
+                customMainTitle = newTitle.trim();
+                localStorage.setItem('customMainTitle2', customMainTitle);
+                mainTitleElement.innerText = customMainTitle;
+            }
+        }
+
+        // এডমিন মোড অন/অফ
+        function toggleAdminMode() {
+            if (!isAdminLoggedIn) {
+                const enteredPassword = prompt("এডমিন পাসওয়ার্ডটি দিন:");
+                if (enteredPassword === ADMIN_PASSWORD) {
+                    isAdminLoggedIn = true;
+                    formContainer.style.display = "block"; 
+                    navAddStaff.style.display = "block"; 
+                    navDashboard.style.display = "block";
+                    statsGrid.style.display = "grid"; // ড্যাশবোর্ড কাউন্টার ওপেন হবে
+                    editTitleBtn.style.display = "inline-block";
+                    adminStatusText.innerText = "Mode: Admin Control Active";
+                    adminStatusText.style.color = "#2ecc71";
+                    adminActionBtn.innerText = "Admin Logout";
+                    applyFilters(); 
+                    alert("এডমিন লগইন সফল! ড্যাশবোর্ড এবং এডিট টুলস উন্মুক্ত হয়েছে।");
+                } else if (enteredPassword !== null) {
+                    alert("ভুল পাসওয়ার্ড!");
+                }
+            } else {
+                isAdminLoggedIn = false;
+                formContainer.style.display = "none";
+                navAddStaff.style.display = "none";
+                navDashboard.style.display = "none";
+                statsGrid.style.display = "none"; // পাবলিকদের থেকে ড্যাশবোর্ড হাইড
+                editTitleBtn.style.display = "none";
+                adminStatusText.innerText = "Mode: Public View";
+                adminStatusText.style.color = "#666";
+                adminActionBtn.innerText = "Admin Login";
+                applyFilters(); 
+                alert("লগআউট সফল! ড্যাশবোর্ড কাউন্টার এবং এডিট অপশনগুলো লক করা হয়েছে।");
+            }
+        }
+
+        // নতুন স্টাফ ও ডাইনামিক ডিপার্টমেন্ট তৈরির লজিক
+        staffForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            if(!isAdminLoggedIn) return;
+
+            const name = document.getElementById('form-name').value;
+            const designation = document.getElementById('form-designation').value;
+            const selectDept = document.getElementById('form-dept-select').value;
+            const newDeptInput = document.getElementById('form-new-dept-input').value.trim();
+            const email = document.getElementById('form-email').value;
+            const phone = document.getElementById('form-phone').value;
+            const photoFile = document.getElementById('form-photo').files[0];
+
+            // ডাইনামিক ডিপার্টমেন্ট হ্যান্ডেলিং
+            let finalDept = selectDept;
+            if(newDeptInput !== "") {
+                if(!deptList.includes(newDeptInput)) {
+                    deptList.push(newDeptInput);
+                    localStorage.setItem('deptData2', JSON.stringify(deptList));
+                    updateDeptDropdowns();
+                }
+                finalDept = newDeptInput;
+            }
+
+            if(!finalDept) {
+                alert("দয়া করে একটি ডিপার্টমেন্ট সিলেক্ট করুন অথবা নতুন নাম লিখুন!");
+                return;
+            }
+
+            // ডিফল্ট রোবট কার্টুন ছবি জেনারেশন (RoboHash API)
+            if (!photoFile) {
+                const randomId = Math.random().toString(36).substring(7);
+                const robotImgUrl = `https://robohash.org/${randomId}.png?set=set4`; // set4 = সুন্দর কার্টুন বিড়াল/রোবট
+                saveStaffData(name, designation, finalDept, phone, email, robotImgUrl);
+            } else {
+                const reader = new FileReader();
+                reader.onloadend = function() {
+                    saveStaffData(name, designation, finalDept, phone, email, reader.result);
+                }
+                reader.readAsDataURL(photoFile);
+            }
+        });
+
+        function saveStaffData(name, designation, dept, phone, email, imgUrl) {
+            const newStaff = { id: Date.now(), name, designation, dept, phone, email, img: imgUrl };
+            staffList.push(newStaff);
+            localStorage.setItem('staffData2', JSON.stringify(staffList));
+            document.getElementById('form-new-dept-input').value = '';
+            staffForm.reset();
+            updateDeptDropdowns();
+            applyFilters();
+            alert('সফলভাবে প্রোফাইল তৈরি হয়েছে!');
+        }
+
+        // এডিট ডাটা মোডাল কন্ট্রোল
+        function openEditModal(id) {
+            const staff = staffList.find(s => s.id === id);
+            if(staff) {
+                document.getElementById('edit-staff-id').value = staff.id;
+                document.getElementById('edit-name').value = staff.name;
+                document.getElementById('edit-designation').value = staff.designation;
+                document.getElementById('edit-dept-select').value = staff.dept || "";
+                document.getElementById('edit-email').value = staff.email;
+                document.getElementById('edit-phone').value = staff.phone;
+                editModal.style.display = "flex";
+            }
+        }
+
+        function closeEditModal() { editModal.style.display = "none"; }
+
+        editForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const id = parseInt(document.getElementById('edit-staff-id').value);
+            const name = document.getElementById('edit-name').value;
+            const designation = document.getElementById('edit-designation').value;
+            const dept = document.getElementById('edit-dept-select').value;
+            const email = document.getElementById('edit-email').value;
+            const phone = document.getElementById('edit-phone').value;
+
+            staffList = staffList.map(staff => {
+                if(staff.id === id) {
+                    return { ...staff, name, designation, dept, email, phone };
+                }
+                return staff;
+            });
+
+            localStorage.setItem('staffData2', JSON.stringify(staffList));
+            closeEditModal();
+            applyFilters();
+            alert('তথ্য সফলভাবে আপডেট করা হয়েছে!');
+        });
+
+        // ফটো রিপ্লেস করা
+        function triggerPhotoReplace(staffId) {
+            activeStaffIdForPhotoReplace = staffId;
+            replaceFileInput.click();
+        }
+
+        replaceFileInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file && activeStaffIdForPhotoReplace) {
+                const reader = new FileReader();
+                reader.onloadend = function() {
+                    staffList = staffList.map(staff => {
+                        if (staff.id === activeStaffIdForPhotoReplace) {
+                            return { ...staff, img: reader.result };
+                        }
+                        return staff;
+                    });
+                    localStorage.setItem('staffData2', JSON.stringify(staffList));
+                    applyFilters();
+                    alert('প্রোফাইল ছবি পরিবর্তন করা হয়েছে!');
+                }
+                reader.readAsDataURL(file);
+            }
+            this.value = '';
+        });
+
+        // স্টাফ ডিলিট করা
+        function deleteStaff(id) {
+            if(!isAdminLoggedIn) return;
+            if(confirm('আপনি কি নিশ্চিতভাবে একে তালিকা থেকে বাদ দিতে চান?')) {
+                staffList = staffList.filter(staff => staff.id !== id);
+                localStorage.setItem('staffData2', JSON.stringify(staffList));
+                applyFilters();
+            }
+        }
+
+        // প্রথমবার চালু হওয়া
+        updateDeptDropdowns();
+        applyFilters();
+    </script>
+</body>
+</html>
